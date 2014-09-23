@@ -9,6 +9,13 @@ import org.junit.*;
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 
+import org.json.simple.JSONObject;
+
+import jxl.Sheet;
+import jxl.Cell;
+import jxl.Workbook;
+import jxl.read.biff.BiffException;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.csv.*;
 import org.openqa.selenium.*;
@@ -24,15 +31,32 @@ public class ContactFormTest {
 	  private boolean acceptNextAlert = true;
 	  private StringBuffer verificationErrors = new StringBuffer();
 	  private String finalScreenshot = null; 
+          private JSONObject obj=new JSONObject();
 	  @Before
 	  public void setUp() throws Exception {
             String website = null;
+
             Reader in = new FileReader("config.csv");
             for (CSVRecord record : CSVFormat.DEFAULT.withHeader("url", "scrnshot").parse(in)) {
                 website = record.get("url");
                 finalScreenshot = record.get("scrnshot");
             }
 	    baseUrl = website; 
+
+            Workbook workbook = Workbook.getWorkbook(new File("name.xls"));
+            Sheet sheet = workbook.getSheet(0);
+            Cell cell1 = sheet.getCell(0,0);
+            Cell cell2 = sheet.getCell(1,0);
+            Cell cell3 = sheet.getCell(2,0);
+            
+            String firstName =  cell1.getContents();
+            String lastName = cell2.getContents();
+            String emailAddress = cell3.getContents(); 
+
+            obj.put("first",firstName);
+            obj.put("last",lastName);
+            obj.put("email",emailAddress);
+
 	    driver = new FirefoxDriver();
 	    driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
 	  }
@@ -46,10 +70,14 @@ public class ContactFormTest {
 	    WebElement titleDropDownListBox = driver.findElement(By.cssSelector(".form-select"));
 	    Select clickThis = new Select(titleDropDownListBox);
 	    clickThis.selectByVisibleText("Dr.");
-	    
-	    driver.findElement(By.cssSelector("#input-480940116329100688")).sendKeys("James");
-	    driver.findElement(By.id("input-480940116329100688-1")).sendKeys("King");
-            driver.findElement(By.id("input-522619690687534722")).sendKeys("test@tester.com");
+	   
+            String first = (String) obj.get("first"); 
+            String last = (String) obj.get("last");
+            String email = (String) obj.get("email");
+ 
+	    driver.findElement(By.cssSelector("#input-480940116329100688")).sendKeys(first);
+	    driver.findElement(By.id("input-480940116329100688-1")).sendKeys(last);
+            driver.findElement(By.id("input-522619690687534722")).sendKeys(email);
             driver.findElement(By.id("input-583739259627992806")).sendKeys("415");
             driver.findElement(By.id("input-583739259627992806-1")).sendKeys("123");
             driver.findElement(By.id("input-583739259627992806-2")).sendKeys("1245");
@@ -58,10 +86,10 @@ public class ContactFormTest {
             driver.findElement(By.xpath(".//*[@class='form-radio-container']/*[contains(text(),'Wine Tasting 360 Platform')]")).click();
             driver.findElement(By.xpath(".//*[@class='form-radio-container']/*[contains(text(),'Custom Solution')]")).click();
             driver.findElement(By.id("input-314362815774891191")).sendKeys("Tell Me More About Your Solution");
-            driver.findElement(By.linkText("Submit")).click();
+            //driver.findElement(By.linkText("Submit")).click();
 
-            String message = driver.findElement(By.id("591800553141919862-msg")).getText();
-            assertEquals(message, "Thank you. Your information has been submitted.");
+            //String message = driver.findElement(By.id("591800553141919862-msg")).getText();
+            //assertEquals(message, "Thank you. Your information has been submitted.");
 	  }
 
 	  @After
