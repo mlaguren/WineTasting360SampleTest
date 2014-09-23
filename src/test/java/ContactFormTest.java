@@ -10,7 +10,7 @@ import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 
 import org.apache.commons.io.FileUtils;
-//import org.apache.commons.csv.*;
+import org.apache.commons.csv.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.Select;
@@ -23,10 +23,16 @@ public class ContactFormTest {
 	  private String baseUrl;
 	  private boolean acceptNextAlert = true;
 	  private StringBuffer verificationErrors = new StringBuffer();
-	  
+	  private String finalScreenshot = null; 
 	  @Before
 	  public void setUp() throws Exception {
-	    baseUrl = "http://www.winetasting360.com";
+            String website = null;
+            Reader in = new FileReader("config.csv");
+            for (CSVRecord record : CSVFormat.DEFAULT.withHeader("url", "scrnshot").parse(in)) {
+                website = record.get("url");
+                finalScreenshot = record.get("scrnshot");
+            }
+	    baseUrl = website; 
 	    driver = new FirefoxDriver();
 	    driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
 	  }
@@ -61,7 +67,7 @@ public class ContactFormTest {
 	  @After
 	  public void tearDown() throws Exception {
 	    File screenshot = ((TakesScreenshot)driver).getScreenshotAs(OutputType.FILE);
-            FileUtils.copyFile(screenshot, new File("temp.png"));
+            FileUtils.copyFile(screenshot, new File(finalScreenshot + ".png"));
 	    driver.quit();
 	    String verificationErrorString = verificationErrors.toString();
 	    if (!"".equals(verificationErrorString)) {
